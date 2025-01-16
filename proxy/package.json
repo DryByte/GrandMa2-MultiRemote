@@ -1,0 +1,16 @@
+{
+  "name": "proxy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPLv3",
+  "type": "commonjs",
+  "description": "",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

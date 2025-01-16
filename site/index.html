@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+</head>
+<body>
+	<form onsubmit="sendMessage();return false">
+		<input id="uh" type="text">
+	</form>
+	<script type="text/javascript">
+		const ws = new WebSocket("ws://127.0.0.1:8080");
+
+		function sendMessage() {
+			const fds = document.getElementById("uh");
+			ws.send(fds.value)
+
+			fds.value = "";
+		}
+	</script>
+</body>
+</html>

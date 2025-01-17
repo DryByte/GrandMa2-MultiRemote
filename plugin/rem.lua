@@ -27,8 +27,15 @@ function connect()
 			LOG_INFO("Client connection closed by the server")
 			break
 		end
-		gma.echo(msg)
-		gma.echo(stat)
+
+		if stat == "timeout" then
+			goto continue
+		end
+
+		LOG_INFO("Received new message, running"..msg)
+		gma.cmd(msg)
+
+		::continue:: -- what a fucked up language...
 	end
 end
 

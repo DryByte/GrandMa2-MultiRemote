@@ -17,6 +17,10 @@ class Connection extends EventEmitter {
 	onMessage(data) {
 		;;
 	}
+
+	sendMessage(msg) {
+		this.socket.write(msg);
+	}
 }
 
 module.exports = Connection;

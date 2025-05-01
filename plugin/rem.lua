@@ -1,5 +1,16 @@
 rem_table = {}
 rem_table.client = nil
+rem_table.plugins = {}
+
+ori_feed = gma.feedback
+
+gma.feedback = function (str)
+	ori_feed(str)
+
+	if rem_table.client ~= nil then
+		sendMessagePacket(str)
+	end
+end
 
 function LOG_INFO(str)
 	le_log = "[REMOTE INFO] "..str
@@ -7,10 +18,60 @@ function LOG_INFO(str)
 	gma.feedback(le_log)
 end
 
+function loadAllPlugins()
+	for i=1,155 do
+		local handle = gma.show.getobj.handle("Plugin "..i);
+		if handle ~= nil then
+			rem_table.plugins[i] = gma.show.getobj.name(handle)
+		end
+	end
+end
+
+-- PROTOCOL PACKETS GMA->proxy
+function sendMessagePacket(str)
+	local id = string.char(0)
+	rem_table.client:send(id..str..string.char(0))
+end
+
+function sendPluginList()
+	local buffer = string.char(2)
+
+	local size = 0
+	local pl_list = ""
+	for k,v in pairs(rem_table.plugins) do
+		size = size+1 -- thx lua, i hate ya
+		pl_list = pl_list..string.char(k)..v..string.char(0)
+	end
+
+	buffer = buffer..string.char(size)..pl_list
+	rem_table.client:send(buffer)
+end
+
+-- PROTOCOL HANDLER proxy->GMA
+function handleMessagePacket()
+	local len,e,p = rem_table.client:receive(1)
+	LOG_INFO("[REMOTE MESSAGE] "..len:byte())
+	local data, e, p = rem_table.client:receive(len:byte())
+	LOG_INFO("[REMOTE MESSAGE] "..data)
+end
+
+function handlePluginList()
+	loadAllPlugins()
+	sendPluginList()
+end
+
+local HANDLE_PACKET_TABLE = {
+	[0] = handleMessagePacket,
+	[2] = handlePluginList
+}
+
 function connect()
+	loadAllPlugins()
 	local socket = require("socket.core")
 	rem_table.client = socket.connect("127.0.0.1", 3000)
 	rem_table.client:settimeout(1)
+
+	rem_table.messages_queue = {}
 
 	LOG_INFO("Connected")
 
@@ -21,19 +82,23 @@ function connect()
 			break
 		end
 
-		local msg, stat = rem_table.client:receive()
+		local p_id, error, partial = rem_table.client:receive(1)
 
-		if stat == "closed" then
+		if error == "closed" then
 			LOG_INFO("Client connection closed by the server")
 			break
 		end
 
-		if stat == "timeout" then
+		if error == "timeout" then
 			goto continue
 		end
 
-		LOG_INFO("Received new message, running"..msg)
-		gma.cmd(msg)
+		p_id = p_id:byte()
+		gma.echo(HANDLE_PACKET_TABLE[p_id])
+		HANDLE_PACKET_TABLE[p_id]()
+
+		--LOG_INFO("Received new message, running"..msg)
+		--gma.cmd(msg)
 
 		::continue:: -- what a fucked up language...
 	end

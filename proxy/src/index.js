@@ -11,9 +11,18 @@ wsServer.on("connection", socket => {
 	console.log("webscoket connected");
 
 	socket.on("message", msg => {
-		msg.writeUInt8(10, msg.length-1);
-		console.log("sending:",msg);
-		tcp.broadcast(msg);
+		let buf = new Buffer(msg.length+2);
+		buf.writeUInt8(0);
+		buf.writeUInt8(msg.length, 1);
+		msg.copy(buf, 2);
+
+		console.log("sending:",buf);
+		//tcp.broadcast(buf);
+
+		let buf2 = new Buffer(1);
+		buf2.writeUInt8(2);
+
+		tcp.broadcast(buf2);
 	});
 });
 

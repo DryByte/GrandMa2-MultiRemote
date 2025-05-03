@@ -4,7 +4,7 @@ GMA <-> Proxy
 
 | ID | length | Message Field |
 ----------------------
-| 0x0 | Text length | String |
+| 0x0 | 4byte BE Text length | String |
 
 ### CMD Packet
 Proxy -> GMA

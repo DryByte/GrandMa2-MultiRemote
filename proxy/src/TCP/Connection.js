@@ -15,32 +15,40 @@ class Connection extends EventEmitter {
 	}
 
 	onMessage(data) {
-		//console.log("Message received:",data.toString(), data);
-
 		let pid = data.readUInt8();
 
-		if (pid == 2) {
-			let size = data.readUInt8(1);
+		switch (pid) {
+			case 0:
+				{
+					let length = data.readInt32BE(1);
+					console.log(data);
+					console.log("Received message: ", data.toString("utf8", 5, length+5), length);
+				}
+				break;
+			case 2:
+				{
+					let length = data.readUInt8(1);
 
-			let offset = 2;
-			for (let i = 0; i < size; i++) {
-				let plugin_id = data.readUInt8(offset);
+					let offset = 2;
+					for (let i = 0; i < length; i++) {
+						let plugin_id = data.readUInt8(offset);
 
-				let str = "";
-				for (;;) {
-					if (data[offset] == 0)
-						break;
+						let str = "";
+						for (;;) {
+							if (data[offset] == 0)
+								break;
 
-					offset += 1;
+							offset += 1;
 
-					str += String.fromCharCode(data[offset]);
+							str += String.fromCharCode(data[offset]);
+						}
+
+						offset += 1;
+						console.log("Plugin: ", plugin_id, str);
+					}
 				}
 
-				offset += 1;
-				console.log("Plugin: ", plugin_id, str);
-			}
-		} else {
-			console.log("hmm");
+				break;
 		}
 	}
 

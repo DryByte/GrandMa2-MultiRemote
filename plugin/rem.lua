@@ -27,10 +27,22 @@ function loadAllPlugins()
 	end
 end
 
+function byteToInt(inp)
+	local byte1 = string.char(inp >> 24 & 0xff)
+	local byte2 = string.char(inp >> 16 & 0xff)
+	local byte3 = string.char(inp >> 8 & 0xff)
+	local byte4 = string.char(inp & 0xff)
+
+	return byte1..byte2..byte3..byte4
+end
+
 -- PROTOCOL PACKETS GMA->proxy
 function sendMessagePacket(str)
 	local id = string.char(0)
-	rem_table.client:send(id..str..string.char(0))
+
+	local size = byteToInt(#str)
+
+	rem_table.client:send(id..size..str..string.char(0))
 end
 
 function sendPluginList()

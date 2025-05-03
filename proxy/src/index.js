@@ -19,8 +19,10 @@ wsServer.on("connection", socket => {
 		console.log("sending:",buf);
 		//tcp.broadcast(buf);
 
-		let buf2 = new Buffer(1);
+		let buf2 = new Buffer(9);
 		buf2.writeUInt8(2);
+		buf2.writeInt32BE(1, 1);
+		buf2.writeInt32BE(56, 5);
 
 		tcp.broadcast(buf2);
 	});

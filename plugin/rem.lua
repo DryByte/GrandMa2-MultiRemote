@@ -18,11 +18,13 @@ function LOG_INFO(str)
 	gma.feedback(le_log)
 end
 
-function loadAllPlugins()
-	for i=1,155 do
-		local handle = gma.show.getobj.handle("Plugin "..i);
+function loadAllPlugins(min, max)
+	local o = gma.show.getobj
+	for i=min,max do
+		LOG_INFO("Checking Plugin: "..i)
+		local handle = o.handle("Plugin "..i);
 		if handle ~= nil then
-			rem_table.plugins[i] = gma.show.getobj.name(handle)
+			rem_table.plugins[i] = o.name(handle)
 		end
 	end
 end
@@ -68,7 +70,16 @@ function handleMessagePacket()
 end
 
 function handlePluginList()
-	loadAllPlugins()
+	local byte_1, error, partial = rem_table.client:receive(1)
+	local byte_2, error, partial = rem_table.client:receive(1)
+	local byte_3, error, partial = rem_table.client:receive(1)
+	local byte_4, error, partial = rem_table.client:receive(1)
+
+	local byte1, error, partial = rem_table.client:receive(1)
+	local byte2, error, partial = rem_table.client:receive(1)
+	local byte3, error, partial = rem_table.client:receive(1)
+	local byte4, error, partial = rem_table.client:receive(1)
+	loadAllPlugins(byte_1:byte()+byte_2:byte()+byte_3:byte()+byte_4:byte(), byte1:byte()+byte2:byte()+byte3:byte()+byte4:byte())
 	sendPluginList()
 end
 
@@ -78,7 +89,7 @@ local HANDLE_PACKET_TABLE = {
 }
 
 function connect()
-	loadAllPlugins()
+	loadAllPlugins(1, 6000)
 	local socket = require("socket.core")
 	rem_table.client = socket.connect("127.0.0.1", 3000)
 	rem_table.client:settimeout(1)

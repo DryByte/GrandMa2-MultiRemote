@@ -10,6 +10,7 @@
 	<div id="boxes">
 		<div id="dashboard">
 			<form onsubmit="sendMessage();return false">
+				<p>Command box:</p>
 				<input id="uh" type="text">
 			</form>
 
@@ -17,16 +18,26 @@
 			<p>Plugin range: </p>
 
 			<form onsubmit="requestPlugins();return false">
-			<input id="plugin_min" type="number" min="0" max="6000" value=0 step="1">
-			<input id="plugin_max" type="number" min="0" max="6000" value=5 step="1">
+			<input id="plugin_min" type="number" min="0" max="999999" value=0 step="1">
+			<input id="plugin_max" type="number" min="0" max="999999" value=5 step="1">
 			<button type="submit">Get plugins</button>
+			</form>
+
+			<p>Macro range: </p>
+			<form onsubmit="requestMacros();return false">
+			<input id="macro_min" type="number" min="0" max="999999" value=0 step="1">
+			<input id="macro_max" type="number" min="0" max="999999" value=5 step="1">
+			<button type="submit">Get macros</button>
 			</form>
 		</div>
 		<div id="plugins">
 			<p>Plugin list:</p>
 			<div id="plugin_box"></div>
 		</div>
-		<div id="macros"></div>
+		<div id="macros">
+			<p>Macro list:</p>
+			<div id="macro_box"></div>
+		</div>
 	</div>
 
 	<script src="./protocol.js"></script>
@@ -52,6 +63,25 @@
 			console.log(pluginList)
 		}
 
+		protocol.onMacroListResponse = (macroList) => {
+			const macrosElemDiv = document.getElementById("macro_box");
+
+			macrosElemDiv.innerHTML = "";
+
+			for (let macro of macroList) {
+				let bt = document.createElement("button");
+				bt.innerHTML = macro.name;
+				bt.addEventListener("click", (ev) => {
+					protocol.sendCommandPacket(`M ${macro.id}`);
+				});
+
+				macrosElemDiv.appendChild(bt);
+			}
+			
+
+			console.log(macroList)
+		}
+
 		function sendMessage() {
 			const fds = document.getElementById("uh");
 			protocol.sendCommandPacket(fds.value);
@@ -67,6 +97,16 @@
 				pl_min.value = pl_max.value-1;
 
 			protocol.sendPluginListRequest(pl_min.value, pl_max.value);
+		}
+
+		function requestMacros() {
+			const m_min = document.getElementById("macro_min");
+			const m_max = document.getElementById("macro_max");
+
+			if (m_min.value >= m_max.value)
+				m_min.value = m_max.value-1;
+
+			protocol.sendMacroListRequest(m_min.value, m_max.value);
 		}
 	</script>
 </body>

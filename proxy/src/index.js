@@ -11,12 +11,21 @@ tcp.on("pluginListResponse", (connectionId, pluginList) => {
 	wss.connections[connectionId].socket.send(JSON.stringify({id: 2, pluginList}));
 });
 
+tcp.on("macroListResponse", (connectionId, macroList) => {
+	// should we change it to byte buffer????
+	console.log("sending macro list", connectionId, macroList);
+	wss.connections[connectionId].socket.send(JSON.stringify({id: 3, macroList}));
+});
+
 wss.on("commandPacket", (connection, buffer) => {
 	tcp.broadcast(buffer);
 });
 
 wss.on("pluginListRequestPacket", (connection, buffer) => {
-	console.log("puta",buffer);
+	tcp.broadcast(buffer);
+});
+
+wss.on("macroListRequestPacket", (connection, buffer) => {
 	tcp.broadcast(buffer);
 });
 

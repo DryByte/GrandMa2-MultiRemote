@@ -39,6 +39,7 @@ class WebSocketServer extends ws.Server {
 
 		this.connections[id].on("commandPacket", this.emit.bind(this, "commandPacket"));
 		this.connections[id].on("pluginListRequestPacket", this.emit.bind(this, "pluginListRequestPacket"));
+		this.connections[id].on("macroListRequestPacket", this.emit.bind(this, "macroListRequestPacket"));
 	}
 }
 

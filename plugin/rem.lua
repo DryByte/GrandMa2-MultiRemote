@@ -1,6 +1,7 @@
 rem_table = {}
 rem_table.client = nil
 rem_table.plugins = {}
+rem_table.macros = {}
 
 ori_feed = gma.feedback
 
@@ -25,6 +26,17 @@ function loadPlugins(min, max)
 		local handle = o.handle("Plugin "..i);
 		if handle ~= nil then
 			rem_table.plugins[i] = o.name(handle)
+		end
+	end
+end
+
+function loadMacros(min, max)
+	local o = gma.show.getobj
+	for i=min,max do
+		LOG_INFO("Checking Macro: "..i)
+		local handle = o.handle("Macro "..i);
+		if handle ~= nil then
+			rem_table.macros[i] = o.name(handle)
 		end
 	end
 end
@@ -64,6 +76,23 @@ function sendPluginList(user_id, min, max)
 	rem_table.client:send(buffer)
 end
 
+function sendMacroList(user_id, min, max)
+	local buffer = string.char(3)
+
+	local size = 0
+	local pl_list = ""
+	for k,v in pairs(rem_table.macros) do
+		if k >= min and k <= max then
+			size = size+1 -- thx lua, i hate ya
+			pl_list = pl_list..string.char(k)..v..string.char(0)
+		end
+	end
+
+	buffer = buffer..user_id
+	buffer = buffer..string.char(size)..pl_list
+	rem_table.client:send(buffer)
+end
+
 -- PROTOCOL HANDLER proxy->GMA
 function handleCommandPacket()
 	local len,e,p = rem_table.client:receive(1)
@@ -92,9 +121,29 @@ function handlePluginList()
 	sendPluginList(user_id, minrange, maxrange)
 end
 
+function handleMacroList()
+	local user_id, error, partial = rem_table.client:receive(1)
+
+	local byte_1, error, partial = rem_table.client:receive(1)
+	local byte_2, error, partial = rem_table.client:receive(1)
+	local byte_3, error, partial = rem_table.client:receive(1)
+	local byte_4, error, partial = rem_table.client:receive(1)
+	local minrange = (byte_1:byte() << 24) | (byte_2:byte() << 16) | (byte_3:byte() << 8) | byte_4:byte()
+
+	byte_1, error, partial = rem_table.client:receive(1)
+	byte_2, error, partial = rem_table.client:receive(1)
+	byte_3, error, partial = rem_table.client:receive(1)
+	byte_4, error, partial = rem_table.client:receive(1)
+	local maxrange = (byte_1:byte() << 24) | (byte_2:byte() << 16) | (byte_3:byte() << 8) | byte_4:byte()
+
+	loadMacros(minrange, maxrange)
+	sendMacroList(user_id, minrange, maxrange)
+end
+
 local HANDLE_PACKET_TABLE = {
 	[0] = handleCommandPacket,
-	[2] = handlePluginList
+	[2] = handlePluginList,
+	[3] = handleMacroList
 }
 
 function connect()

@@ -54,6 +54,36 @@ class Connection extends EventEmitter {
 				}
 
 				break;
+
+			case 3:
+				{
+					let userId = data.readUInt8(1);
+					let length = data.readUInt8(2);
+					let offset = 3;
+					let macroList = [];
+					for (let i = 0; i < length; i++) {
+						let macro_id = data.readUInt8(offset);
+
+						let str = "";
+						for (;;) {
+							if (data[offset] == 0)
+								break;
+
+							offset += 1;
+
+							str += String.fromCharCode(data[offset]);
+						}
+
+						offset += 1;
+						console.log("Macro: ", macro_id, str);
+
+						macroList.push({id: macro_id, name: str});
+					}
+
+					this.emit("macroListResponse", userId, macroList);
+				}
+
+				break;
 		}
 	}
 

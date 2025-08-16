@@ -5,8 +5,35 @@
 
 #boxes div {
 	flex: 1;
+	border: 1px;
+	border-color: black;
+	border-style: dashed;
+}
+
+#boxes div div {
+	border: none;
 }
 
 #plugin_box button {
 	margin: 2px;
+}
+
+#macro_box button {
+	margin: 2px;
+}
+
+#plugins p {
+	border-top: 0;
+	border-right: 0;
+	border-left: 0;
+	border-bottom: 2px;
+	border-style: solid;
+}
+
+#macros p {
+	border-top: 0;
+	border-right: 0;
+	border-left: 0;
+	border-bottom: 2px;
+	border-style: solid;
 }

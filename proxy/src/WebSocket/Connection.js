@@ -37,6 +37,16 @@ class Connection extends EventEmitter {
 
 				this.emit("pluginListRequestPacket", this, buf2);
 				break;
+
+			case 3: // macro list
+				let buf3 = new Buffer(10);
+				buf3.writeUInt8(3);
+				buf3.writeUInt8(this.id, 1);
+				buf3.writeInt32BE(msg.readInt32BE(1), 2);
+				buf3.writeInt32BE(msg.readInt32BE(5), 6);
+
+				this.emit("macroListRequestPacket", this, buf3);
+				break;
 		}
 	}
 }

@@ -54,6 +54,7 @@ class TCP extends Server {
 		this.connections[id] = soc;
 
 		soc.on("pluginListResponse", this.emit.bind(this, "pluginListResponse"));
+		soc.on("macroListResponse", this.emit.bind(this, "macroListResponse"));
 		soc.on("disconnect", this.handleSocketDisconnect);
 	}
 

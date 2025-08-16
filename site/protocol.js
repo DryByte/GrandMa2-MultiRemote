@@ -11,10 +11,14 @@ class RemoteProtocol {
 			case 2:
 				this.onPluginListResponse(ev_obj.pluginList);
 				break;
+			case 3:
+				this.onMacroListResponse(ev_obj.macroList);
+				break;
 		}
 	}
 
 	onPluginListResponse(pluginList){};
+	onMacroListResponse(macroList){};
 
 	sendCommandPacket(command) {
 		const cmdBuffer = new Int8Array(1+command.length);
@@ -40,5 +44,22 @@ class RemoteProtocol {
 		plListBuffer[8] = rangemax&255;
 
 		this.ws.send(plListBuffer);
+	}
+
+	sendMacroListRequest(rangemin, rangemax) {
+		const macroListBuffer = new Int8Array(9);
+		macroListBuffer[0] = 3;
+
+		macroListBuffer[1] = rangemin>>24&255
+		macroListBuffer[2] = rangemin>>16&255
+		macroListBuffer[3] = rangemin>>8&255;
+		macroListBuffer[4] = rangemin&255;
+
+		macroListBuffer[5] = rangemax>>24&255
+		macroListBuffer[6] = rangemax>>16&255
+		macroListBuffer[7] = rangemax>>8&255;
+		macroListBuffer[8] = rangemax&255;
+
+		this.ws.send(macroListBuffer);
 	}
 }

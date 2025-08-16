@@ -1,0 +1,12 @@
+#boxes {
+	width: 100%;
+	display: flex;
+}
+
+#boxes div {
+	flex: 1;
+}
+
+#plugin_box button {
+	margin: 2px;
+}

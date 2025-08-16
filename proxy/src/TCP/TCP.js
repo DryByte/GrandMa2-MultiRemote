@@ -53,6 +53,7 @@ class TCP extends Server {
 		let soc = new TCPConnection(this, socket, id);
 		this.connections[id] = soc;
 
+		soc.on("pluginListResponse", this.emit.bind(this, "pluginListResponse"));
 		soc.on("disconnect", this.handleSocketDisconnect);
 	}
 

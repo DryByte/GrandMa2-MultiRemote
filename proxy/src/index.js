@@ -1,31 +1,23 @@
-const TCP = require("./TCP/TCP.js");
+const TCP = require("./TCP/TCP.js"),
+	  WebSocketServer = require("./WebSocket/server.js");
 
-const ws = require("ws");
+const tcp = new TCP(),
+	  wss = new WebSocketServer();
 
-let tcp = new TCP();
-let wsServer = new ws.Server({port: 8080});
 
-let conenc = null;
+tcp.on("pluginListResponse", (connectionId, pluginList) => {
+	// should we change it to byte buffer????
+	console.log("sending plugin list", connectionId, pluginList);
+	wss.connections[connectionId].socket.send(JSON.stringify({id: 2, pluginList}));
+});
 
-wsServer.on("connection", socket => {
-	console.log("webscoket connected");
+wss.on("commandPacket", (connection, buffer) => {
+	tcp.broadcast(buffer);
+});
 
-	socket.on("message", msg => {
-		let buf = new Buffer(msg.length+2);
-		buf.writeUInt8(0);
-		buf.writeUInt8(msg.length, 1);
-		msg.copy(buf, 2);
-
-		console.log("sending:",buf);
-		//tcp.broadcast(buf);
-
-		let buf2 = new Buffer(9);
-		buf2.writeUInt8(2);
-		buf2.writeInt32BE(1, 1);
-		buf2.writeInt32BE(56, 5);
-
-		tcp.broadcast(buf2);
-	});
+wss.on("pluginListRequestPacket", (connection, buffer) => {
+	console.log("puta",buffer);
+	tcp.broadcast(buffer);
 });
 
 tcp.listen(3000);

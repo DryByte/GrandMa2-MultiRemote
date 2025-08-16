@@ -8,7 +8,7 @@ class Connection extends EventEmitter {
 		this.socket = socket;
 		this.id = id;
 
-		this.socket.on("data", this.onMessage);
+		this.socket.on("data", this.onMessage.bind(this));
 		this.socket.on("close", this.emit.bind(this, "disconnect"));
 		this.socket.on("timeout", this.emit.bind(this, "disconnect"));
 		this.socket.on("end", this.emit.bind(this, "disconnect"));
@@ -27,9 +27,10 @@ class Connection extends EventEmitter {
 				break;
 			case 2:
 				{
-					let length = data.readUInt8(1);
-
-					let offset = 2;
+					let userId = data.readUInt8(1);
+					let length = data.readUInt8(2);
+					let offset = 3;
+					let pluginList = [];
 					for (let i = 0; i < length; i++) {
 						let plugin_id = data.readUInt8(offset);
 
@@ -45,7 +46,11 @@ class Connection extends EventEmitter {
 
 						offset += 1;
 						console.log("Plugin: ", plugin_id, str);
+
+						pluginList.push({id: plugin_id, name: str});
 					}
+
+					this.emit("pluginListResponse", userId, pluginList);
 				}
 
 				break;
@@ -53,7 +58,6 @@ class Connection extends EventEmitter {
 	}
 
 	sendMessage(msg) {
-		console.log("sending???")
 		this.socket.write(msg);
 	}
 }

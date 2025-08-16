@@ -4,19 +4,69 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title></title>
+	<link rel="stylesheet" type="text/css" href="./main.css">
 </head>
 <body>
-	<form onsubmit="sendMessage();return false">
-		<input id="uh" type="text">
-	</form>
+	<div id="boxes">
+		<div id="dashboard">
+			<form onsubmit="sendMessage();return false">
+				<input id="uh" type="text">
+			</form>
+
+			</style>
+			<p>Plugin range: </p>
+
+			<form onsubmit="requestPlugins();return false">
+			<input id="plugin_min" type="number" min="0" max="6000" value=0 step="1">
+			<input id="plugin_max" type="number" min="0" max="6000" value=5 step="1">
+			<button type="submit">Get plugins</button>
+			</form>
+		</div>
+		<div id="plugins">
+			<p>Plugin list:</p>
+			<div id="plugin_box"></div>
+		</div>
+		<div id="macros"></div>
+	</div>
+
+	<script src="./protocol.js"></script>
 	<script type="text/javascript">
-		const ws = new WebSocket("ws://127.0.0.1:8080");
+		const protocol = new RemoteProtocol("127.0.0.1", 8080);
+
+		protocol.onPluginListResponse = (pluginList) => {
+			const pluginsElemDiv = document.getElementById("plugin_box");
+
+			pluginsElemDiv.innerHTML = "";
+
+			for (let plugin of pluginList) {
+				let bt = document.createElement("button");
+				bt.innerHTML = plugin.name;
+				bt.addEventListener("click", (ev) => {
+					protocol.sendCommandPacket(`Pl ${plugin.id}`);
+				});
+
+				pluginsElemDiv.appendChild(bt);
+			}
+			
+
+			console.log(pluginList)
+		}
 
 		function sendMessage() {
 			const fds = document.getElementById("uh");
-			ws.send(fds.value)
+			protocol.sendCommandPacket(fds.value);
 
 			fds.value = "";
+		}
+
+		function requestPlugins() {
+			const pl_min = document.getElementById("plugin_min");
+			const pl_max = document.getElementById("plugin_max");
+
+			if (pl_min.value >= pl_max.value)
+				pl_min.value = pl_max.value-1;
+
+			protocol.sendPluginListRequest(pl_min.value, pl_max.value);
 		}
 	</script>
 </body>

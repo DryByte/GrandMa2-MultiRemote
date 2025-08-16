@@ -18,7 +18,7 @@ function LOG_INFO(str)
 	gma.feedback(le_log)
 end
 
-function loadAllPlugins(min, max)
+function loadPlugins(min, max)
 	local o = gma.show.getobj
 	for i=min,max do
 		LOG_INFO("Checking Plugin: "..i)
@@ -47,49 +47,58 @@ function sendMessagePacket(str)
 	rem_table.client:send(id..size..str..string.char(0))
 end
 
-function sendPluginList()
+function sendPluginList(user_id, min, max)
 	local buffer = string.char(2)
 
 	local size = 0
 	local pl_list = ""
 	for k,v in pairs(rem_table.plugins) do
-		size = size+1 -- thx lua, i hate ya
-		pl_list = pl_list..string.char(k)..v..string.char(0)
+		if k >= min and k <= max then
+			size = size+1 -- thx lua, i hate ya
+			pl_list = pl_list..string.char(k)..v..string.char(0)
+		end
 	end
 
+	buffer = buffer..user_id
 	buffer = buffer..string.char(size)..pl_list
 	rem_table.client:send(buffer)
 end
 
 -- PROTOCOL HANDLER proxy->GMA
-function handleMessagePacket()
+function handleCommandPacket()
 	local len,e,p = rem_table.client:receive(1)
 	LOG_INFO("[REMOTE MESSAGE] "..len:byte())
 	local data, e, p = rem_table.client:receive(len:byte())
 	LOG_INFO("[REMOTE MESSAGE] "..data)
+	gma.cmd(data)
 end
 
 function handlePluginList()
+	local user_id, error, partial = rem_table.client:receive(1)
+
 	local byte_1, error, partial = rem_table.client:receive(1)
 	local byte_2, error, partial = rem_table.client:receive(1)
 	local byte_3, error, partial = rem_table.client:receive(1)
 	local byte_4, error, partial = rem_table.client:receive(1)
+	local minrange = (byte_1:byte() << 24) | (byte_2:byte() << 16) | (byte_3:byte() << 8) | byte_4:byte()
 
-	local byte1, error, partial = rem_table.client:receive(1)
-	local byte2, error, partial = rem_table.client:receive(1)
-	local byte3, error, partial = rem_table.client:receive(1)
-	local byte4, error, partial = rem_table.client:receive(1)
-	loadAllPlugins(byte_1:byte()+byte_2:byte()+byte_3:byte()+byte_4:byte(), byte1:byte()+byte2:byte()+byte3:byte()+byte4:byte())
-	sendPluginList()
+	byte_1, error, partial = rem_table.client:receive(1)
+	byte_2, error, partial = rem_table.client:receive(1)
+	byte_3, error, partial = rem_table.client:receive(1)
+	byte_4, error, partial = rem_table.client:receive(1)
+	local maxrange = (byte_1:byte() << 24) | (byte_2:byte() << 16) | (byte_3:byte() << 8) | byte_4:byte()
+
+	loadPlugins(minrange, maxrange)
+	sendPluginList(user_id, minrange, maxrange)
 end
 
 local HANDLE_PACKET_TABLE = {
-	[0] = handleMessagePacket,
+	[0] = handleCommandPacket,
 	[2] = handlePluginList
 }
 
 function connect()
-	loadAllPlugins(1, 6000)
+	--loadPlugins(1, 6000)
 	local socket = require("socket.core")
 	rem_table.client = socket.connect("127.0.0.1", 3000)
 	rem_table.client:settimeout(1)
@@ -119,9 +128,6 @@ function connect()
 		p_id = p_id:byte()
 		gma.echo(HANDLE_PACKET_TABLE[p_id])
 		HANDLE_PACKET_TABLE[p_id]()
-
-		--LOG_INFO("Received new message, running"..msg)
-		--gma.cmd(msg)
 
 		::continue:: -- what a fucked up language...
 	end

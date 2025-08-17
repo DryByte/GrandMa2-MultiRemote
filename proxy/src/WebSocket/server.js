@@ -9,6 +9,8 @@ class WebSocketServer extends ws.Server {
 		this.connections = new Array(64);
 
 		this.on("connection", this.handleNewConnection);
+
+		this.checkAliveInterval = setInterval(this.pingAll.bind(this), 5000);
 	}
 
 	findFreeId() {
@@ -25,16 +27,44 @@ class WebSocketServer extends ws.Server {
 		return id;
 	}
 
+	pingAll() {
+		console.log("Sending websocket ping...");
+		for (let connection of this.connections) {
+			if (typeof connection == "undefined")
+				continue;
+
+			if (connection.isAlive == false) {
+				this.handleDisconnect(connection);
+				continue;
+			}
+
+			console.log("Sending ping to socket:", connection.id);
+
+			connection.isAlive = false;
+			connection.socket.ping();
+		}
+	}
+
+	handleDisconnect(connection) {
+		if (typeof connection == "undefined")
+			return;
+
+		console.log("Disconnecting socket:", connection.id);
+
+		connection.socket.terminate();
+		delete this.connections[connection.id];
+	}
+
 	handleNewConnection(socket) {
 		console.log("a")
 
 		let id = this.findFreeId();
 		if (id < 0) {
-			console.log("az")
 			socket.terminate();
 			return;
 		}
 
+		console.log(`New websocket connection: ${id}`);
 		this.connections[id] = new Connection(id, socket);
 
 		this.connections[id].on("commandPacket", this.emit.bind(this, "commandPacket"));

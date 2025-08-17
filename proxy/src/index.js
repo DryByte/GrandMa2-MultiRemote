@@ -7,12 +7,18 @@ const tcp = new TCP(),
 
 tcp.on("pluginListResponse", (connectionId, pluginList) => {
 	// should we change it to byte buffer????
+	if (typeof wss.connections[connectionId] == "undefined")
+		return;
+
 	console.log("sending plugin list", connectionId, pluginList);
 	wss.connections[connectionId].socket.send(JSON.stringify({id: 2, pluginList}));
 });
 
 tcp.on("macroListResponse", (connectionId, macroList) => {
 	// should we change it to byte buffer????
+	if (typeof wss.connections[connectionId] == "undefined")
+		return;
+
 	console.log("sending macro list", connectionId, macroList);
 	wss.connections[connectionId].socket.send(JSON.stringify({id: 3, macroList}));
 });

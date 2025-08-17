@@ -7,7 +7,14 @@ class Connection extends EventEmitter {
 		this.socket = socket;
 		this.id = id;
 
+		this.isAlive = true;
+
 		this.socket.on("message", this.handleMessage.bind(this));
+		this.socket.on("pong", this.handlePong.bind(this));
+	}
+
+	handlePong() {
+		this.isAlive = true;
 	}
 
 	handleMessage(msg) {

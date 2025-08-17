@@ -30,3 +30,28 @@ Proxy -> WebSocket
 	"pluginList": []
 }
 ```
+
+### Macro List Packet
+Websocket -> Proxy
+| ID |range min  | range max |
+|----|------------|-----------|
+| 0x3|  4byte BE  | 4 byte BE |
+
+Proxy -> GMA
+| ID | WsId |range min  | range max |
+|----|--------|------------|-----------|
+| 0x3|  uint8 |  4byte BE  | 4 byte BE |
+
+GMA -> Proxy
+| ID | WsId |length | List |
+|----|--------|--------|--------|
+| 0x3| uint8  |List length (index) | Macro list splitted by \0 and ID, Name |
+
+
+Proxy -> WebSocket
+```json
+{
+	"id": 3,
+	"pluginList": []
+}
+```
